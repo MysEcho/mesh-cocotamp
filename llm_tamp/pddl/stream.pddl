@@ -1,0 +1,67 @@
+(define (stream kuka-tamp)
+  (:stream sample-bpose
+    :inputs (?o ?l)
+    :domain (and (Item ?o) (Loc ?l))
+    :outputs (?bp)
+    :certified (and (BPose ?o ?bp ?l)
+                    (Pose ?o ?bp))
+  )
+
+  (:stream sample-pose
+    :inputs (?o ?l)
+    :domain (and (Item ?o) (Loc ?l))
+    :outputs (?p)
+    :certified (and (Supported ?o ?p ?l)
+                    (Pose ?o ?p))
+  )
+
+  (:stream sample-grasp
+    :inputs (?o)
+    :domain (Item ?o)
+    :outputs (?g)
+    :certified (Grasp ?o ?g)
+  )
+
+  (:stream inverse-kinematics
+    :inputs (?a ?o ?p ?g)
+    :domain (and (Item ?o)
+                 (Arm ?a)
+                 (Pose ?o ?p)
+                 (Grasp ?o ?g))
+    :outputs (?bq ?t)
+    :certified (and (Kin ?a ?o ?p ?g ?bq ?t)
+                    (BConf ?bq)
+                    (Traj ?a ?t))
+  )
+
+  (:stream plan-base-motion
+    :inputs (?q1 ?q2)
+    :domain (and (BConf ?q1) 
+                 (BConf ?q2))
+    :outputs (?t)
+    :certified (and (BTraj ?t)
+                    (BaseMotion ?q1 ?t ?q2))
+  )
+
+  (:stream inverse-visibility
+    :inputs (?o ?bp ?l)
+    :domain (and (Item ?o)
+                 (Loc ?l)
+                 (BPose ?o ?bp ?l))
+    :outputs (?hq ?ht ?bq)
+    :certified (and (Vis ?o ?bp ?bq ?hq ?ht)
+                    (Pose ?o ?bp)
+                    (BConf ?bq)
+                    (Conf head ?hq)
+                    (Traj head ?ht))
+  )
+  (:function (MoveCost ?q1 ?q2)
+    (and (BConf ?q1)
+         (BConf ?q2))
+  )
+
+  (:function (DetectCost ?o ?l)
+    (and (Item ?o)
+         (Loc ?l))
+  )
+)

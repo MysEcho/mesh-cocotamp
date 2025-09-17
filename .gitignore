@@ -1,0 +1,11 @@
+__pycache__
+.vscode
+statistics
+temp
+*.log
+results/
+llm_tamp/dataset_temp
+llm_tamp/dataset
+llm_tamp/__pycache__
+llm_tamp/.env
+llm_tamp/ask_local.py
