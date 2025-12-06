@@ -9,3 +9,4 @@ llm_tamp/dataset
 llm_tamp/__pycache__
 llm_tamp/.env
 llm_tamp/ask_local.py
+.env

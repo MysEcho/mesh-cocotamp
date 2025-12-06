@@ -1,51 +1,58 @@
-import sys
 import os
+import sys
+from collections import namedtuple
 
+import numpy as np
+from examples.discrete_belief.run import (
+    INF,
+    MAX_COST,
+    MAX_FD_COST,
+    clip_cost,
+    revisit_mdp_cost,
+)
 from examples.pybullet.utils.pybullet_tools.pr2_primitives import (
-    Pose, Conf, Trajectory, 
-    sample_placement, 
-    pairwise_collision, 
-    get_fixed_bodies
+    Conf,
+    Pose,
+    Trajectory,
+    get_fixed_bodies,
+    pairwise_collision,
+    sample_placement,
 )
 from examples.pybullet.utils.pybullet_tools.pr2_utils import (
-    HEAD_LINK_NAME, PR2_GROUPS,
+    HEAD_LINK_NAME,
+    PR2_GROUPS,
     get_group_joints,
 )
 from examples.pybullet.utils.pybullet_tools.utils import (
-    Ray, Euler, LockRenderer, ConfSaver,
-    ray_collision,
-    point_from_pose, 
-    get_link_pose,
-    link_from_name,
-    quat_from_euler,
-    pose_from_point_quat,
-    unit_from_theta,
-    wrap_angle,
-    joints_from_names,
-    set_joint_positions,
-    tform_point,
-    invert,
+    ConfSaver,
+    Euler,
+    LockRenderer,
+    Ray,
     angle_between,
-    unit_point,
-    quat_from_pose,
-    euler_from_quat,
-    quat_from_axis_angle,
     compute_jacobian,
+    euler_from_quat,
+    get_distance,
+    get_link_pose,
+    invert,
+    joints_from_names,
+    link_from_name,
     movable_from_joints,
-    violates_limits,
+    point_from_pose,
+    pose_from_point_quat,
+    quat_from_axis_angle,
+    quat_from_euler,
+    quat_from_pose,
+    ray_collision,
+    set_joint_positions,
     set_pose,
-    get_distance
-)
-from examples.discrete_belief.run import (
-    MAX_FD_COST, MAX_COST, INF,
-    revisit_mdp_cost, 
-    clip_cost
+    tform_point,
+    unit_from_theta,
+    unit_point,
+    violates_limits,
+    wrap_angle,
 )
 
-from llm_tamp.belief import BeliefState, BeliefTask, BeliefPose
-
-import numpy as np
-from collections import namedtuple
+from llm_tamp.belief import BeliefPose, BeliefState, BeliefTask
 
 Interval = namedtuple('Interval', ['lower', 'upper']) # AABB
 PI = np.pi
@@ -90,6 +97,8 @@ def get_belief_gen(state: BeliefState):
 #                 yield (p,)
 #     return gen
 import random
+
+
 def get_stable_gen(task, collisions=True, **kwargs):
     obstacles = task.fixed if collisions else []
     def gen(body, surface):
@@ -114,7 +123,7 @@ def visible_base_generator(robot, target_point, base_range=(1., 1.), theta_range
     base_from_target = unit_from_theta(np.random.uniform(0., 2 * np.pi))
     look_distance = np.random.uniform(*base_range)
     base_xy = target_point[:2] - look_distance * base_from_target
-    base_theta = np.math.atan2(base_from_target[1], base_from_target[0]) + np.random.uniform(*theta_range)
+    base_theta = np.arctan2(base_from_target[1], base_from_target[0]) + np.random.uniform(*theta_range)
     base_q = np.append(base_xy, wrap_angle(base_theta))
     return base_q
 
@@ -157,6 +166,8 @@ def inverse_visibility(pr2, point, head_name=HEAD_LINK_NAME, head_joints=None,
         return None
     return head_conf
 
+
+# Output where should the robot look
 def get_inverse_vis_fn(task: BeliefTask, base_range, max_attempt, collisions=True):
     # stream inverse-visibility
     robot = task.robot
